@@ -1,0 +1,57 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Customer {
+  id           Int           @id @default(autoincrement())
+  name         String
+  phone        String?
+  email        String?       @unique
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+}
+
+model Service {
+  id           Int           @id @default(autoincrement())
+  name         String
+  price        Float
+  duration     Int           // นาที
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]  // ← added opposite relation
+}
+
+model Staff {
+  id           Int           @id @default(autoincrement())
+  name         String
+  role         String
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+}
+
+model Appointment {
+  id           Int           @id @default(autoincrement())
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  customerId   Int
+  service      Service       @relation(fields: [serviceId], references: [id])
+  serviceId    Int
+  staff        Staff         @relation(fields: [staffId], references: [id])
+  staffId      Int
+  scheduledAt  DateTime
+  status       String        // pending, completed, cancelled
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]  // ← added opposite relation
+}
+
+model Transaction {
+  id            Int           @id @default(autoincrement())
+  appointment   Appointment?  @relation(fields: [appointmentId], references: [id])
+  appointmentId Int?
+  totalAmount   Float
+  paidAt        DateTime      @default(now())
+  paymentMethod String        // cash, card
+}
